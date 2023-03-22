@@ -7,6 +7,7 @@ class NewTransaction extends StatelessWidget {
 
   NewTransaction(this.addTx);
 
+  // this method adds a new Transaction to the list of userTransaction in the main method.
   void onSubmitted() {
     String enteredTitle = titleController.text;
     double enteredAmount = double.parse(amountController.text);
@@ -26,20 +27,21 @@ class NewTransaction extends StatelessWidget {
         TextField(
           onSubmitted: (_) => onSubmitted(),
           controller: titleController,
-          decoration: InputDecoration(
+          decoration: const InputDecoration(
             label: Text('Title'),
           ),
         ),
         TextField(
           onSubmitted: (_) => onSubmitted(),
           controller: amountController,
-          decoration: InputDecoration(
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
             label: Text('Amount'),
           ),
         ),
         TextButton(
           onPressed: onSubmitted,
-          child: Text(
+          child: const Text(
             'Add Transaction',
             style: TextStyle(
                 fontSize: 18,

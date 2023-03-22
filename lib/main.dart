@@ -1,3 +1,4 @@
+import 'package:expense_tracker/widgets/chart.dart';
 import 'package:expense_tracker/widgets/new_transaction.dart';
 import 'package:expense_tracker/widgets/transactions.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'Expense Tracker',
       home: MyHomePage(),
     );
@@ -26,19 +27,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  List<TransactionModel> _userTransactions = [
-    TransactionModel(
-        title: 'New Shoes',
-        id: DateTime.now.toString(),
-        amount: 13.99,
-        date: DateTime.now()),
-    TransactionModel(
-        title: 'New cake',
-        id: DateTime.now.toString(),
-        amount: 15.90,
-        date: DateTime.now()),
-  ];
+  // this list maintains the list of all the transactions
+  List<TransactionModel> _userTransactions = [];
 
+  //this mehtod adds new transactions into the userTransactions list
   void addTransactions(String title, double amount) {
     TransactionModel newtx = TransactionModel(
         id: DateTime.now().toString(),
@@ -51,35 +43,43 @@ class _MyHomePageState extends State<MyHomePage> {
     });
   }
 
+  //this method pops up the modal bottom sheet
   void startAddNewtx(BuildContext ctx) {
+    //here the modal  bottom sheet returns the NewTransaction widget which takes addTransactions method as the argument
     showModalBottomSheet(
         context: ctx, builder: (_) => NewTransaction(addTransactions));
+  }
+
+  //this method fetches the list of transactions of only 7 last days into recentTransactions list
+  List<TransactionModel> get recentTransactions {
+    return _userTransactions.where((tx) {
+      return tx.date.isAfter(DateTime.now().subtract(Duration(days: 7)));
+    }).toList();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('EXPENSE TRACKER'),
+        title: const Text('EXPENSE TRACKER'),
         actions: [
           IconButton(
+            //here on pressed we want to add new transaction to the list, and hence we call the popup for modal bottom sheet
             onPressed: () => startAddNewtx(context),
-            icon: Icon(Icons.add),
+            icon: const Icon(Icons.add),
           ),
         ],
       ),
       body: Column(
         children: [
-          Card(
-            child: Text('Chart comes here'),
-          ),
+          Chart(recentTransactions),
           Transaction(_userTransactions),
         ],
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
         onPressed: () => startAddNewtx(context),
-        child: Icon(Icons.add),
+        child: const Icon(Icons.add),
       ),
     );
   }
