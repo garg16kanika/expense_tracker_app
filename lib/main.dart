@@ -1,85 +1,125 @@
-import 'package:expense_tracker/widgets/chart.dart';
-import 'package:expense_tracker/widgets/new_transaction.dart';
 import 'package:expense_tracker/widgets/transactions.dart';
 import 'package:flutter/material.dart';
 
+import './widgets/new_transaction.dart';
+
+import './widgets/chart.dart';
 import 'models/transaction_model.dart';
 
 void main() => runApp(MyApp());
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Expense Tracker',
+    return MaterialApp(
+      title: 'Personal Expenses',
+      theme: ThemeData(
+          primarySwatch: Colors.purple,
+          accentColor: Colors.amber,
+          // errorColor: Colors.red,
+
+          textTheme: ThemeData.light().textTheme.copyWith(
+                headline6: const TextStyle(
+                  fontFamily: 'OpenSans',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+                button: const TextStyle(color: Colors.white),
+              ),
+          appBarTheme: AppBarTheme(
+            textTheme: ThemeData.light().textTheme.copyWith(
+                  headline6: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+          )),
       home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
-
+  // String titleInput;
+  // String amountInput;
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  // this list maintains the list of all the transactions
-  List<TransactionModel> _userTransactions = [];
+  final List<Transaction> _userTransactions = [];
 
-  //this mehtod adds new transactions into the userTransactions list
-  void addTransactions(String title, double amount) {
-    TransactionModel newtx = TransactionModel(
-        id: DateTime.now().toString(),
-        title: title,
-        amount: amount,
-        date: DateTime.now());
+  List<Transaction> get _recentTransactions {
+    return _userTransactions.where((tx) {
+      return tx.date.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
+  void _addNewTransaction(
+      String txTitle, double txAmount, DateTime chosenDate) {
+    final newTx = Transaction(
+      title: txTitle,
+      amount: txAmount,
+      date: chosenDate,
+      id: DateTime.now().toString(),
+    );
 
     setState(() {
-      _userTransactions.add(newtx);
+      _userTransactions.add(newTx);
     });
   }
 
-  //this method pops up the modal bottom sheet
-  void startAddNewtx(BuildContext ctx) {
-    //here the modal  bottom sheet returns the NewTransaction widget which takes addTransactions method as the argument
+  void _startAddNewTransaction(BuildContext ctx) {
     showModalBottomSheet(
-        context: ctx, builder: (_) => NewTransaction(addTransactions));
+      context: ctx,
+      builder: (_) {
+        return GestureDetector(
+          onTap: () {},
+          child: NewTransaction(_addNewTransaction),
+          behavior: HitTestBehavior.opaque,
+        );
+      },
+    );
   }
 
-  //this method fetches the list of transactions of only 7 last days into recentTransactions list
-  List<TransactionModel> get recentTransactions {
-    return _userTransactions.where((tx) {
-      return tx.date.isAfter(DateTime.now().subtract(Duration(days: 7)));
-    }).toList();
+  void _deleteTransaction(String id) {
+    setState(() {
+      _userTransactions.removeWhere((tx) => tx.id == id);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('EXPENSE TRACKER'),
-        actions: [
+        title: const Text(
+          'Personal Expenses',
+        ),
+        actions: <Widget>[
           IconButton(
-            //here on pressed we want to add new transaction to the list, and hence we call the popup for modal bottom sheet
-            onPressed: () => startAddNewtx(context),
             icon: const Icon(Icons.add),
+            onPressed: () => _startAddNewTransaction(context),
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Chart(recentTransactions),
-          Transaction(_userTransactions),
-        ],
+      body: SingleChildScrollView(
+        child: Column(
+          // mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: <Widget>[
+            Chart(_recentTransactions),
+            TransactionList(_userTransactions, _deleteTransaction),
+          ],
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
-        onPressed: () => startAddNewtx(context),
-        child: const Icon(Icons.add),
+        child: Icon(Icons.add),
+        onPressed: () => _startAddNewTransaction(context),
       ),
     );
   }
